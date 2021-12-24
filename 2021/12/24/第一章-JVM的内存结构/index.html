@@ -1,0 +1,741 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <meta name="keywords" content="">
+  <meta name="description" content="第一章 JVM的内存结构本章内容  程序计数器 虚拟机栈 本地方法栈 堆 方法区  1.1 程序计数器所处位置  1.1.1 定义Program Counter Register 程序计数器（寄存器）  作用：记住下一条JVM指令的执行地址。  特点  是线程私有的（每个线程都有自己的程序计数器） 不会存在内存溢出    物理上，是通过寄存器实现的。 1.1.2 作用  1.java源代码不能直接">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第一章 JVM的内存结构">
+<meta property="og:url" content="http://example.com/2021/12/24/%E7%AC%AC%E4%B8%80%E7%AB%A0-JVM%E7%9A%84%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/index.html">
+<meta property="og:site_name" content="密鼬CyrptoSkunk">
+<meta property="og:description" content="第一章 JVM的内存结构本章内容  程序计数器 虚拟机栈 本地方法栈 堆 方法区  1.1 程序计数器所处位置  1.1.1 定义Program Counter Register 程序计数器（寄存器）  作用：记住下一条JVM指令的执行地址。  特点  是线程私有的（每个线程都有自己的程序计数器） 不会存在内存溢出    物理上，是通过寄存器实现的。 1.1.2 作用  1.java源代码不能直接">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://image.cryptomartin.top/img/image-20211222083645693.png">
+<meta property="og:image" content="http://image.cryptomartin.top/img/image-20211222084432356.png">
+<meta property="og:image" content="http://image.cryptomartin.top/img/image-20211222204215587.png">
+<meta property="og:image" content="http://image.cryptomartin.top/img/image-20211222225101335.png">
+<meta property="og:image" content="http://image.cryptomartin.top/img/image-20211222233156739.png">
+<meta property="og:image" content="http://image.cryptomartin.top/img/image-20211222234406180.png">
+<meta property="og:image" content="http://image.cryptomartin.top/img/image-20211222234505594.png">
+<meta property="og:image" content="http://image.cryptomartin.top/img/image-20211223152803582.png">
+<meta property="og:image" content="http://image.cryptomartin.top/img/image-20211223153516263.png">
+<meta property="og:image" content="http://image.cryptomartin.top/img/image-20211223154117117.png">
+<meta property="og:image" content="http://image.cryptomartin.top/img/image-20211224112919717.png">
+<meta property="og:image" content="http://image.cryptomartin.top/img/image-20211224162436968.png">
+<meta property="og:image" content="http://image.cryptomartin.top/img/image-20211224162735236.png">
+<meta property="og:image" content="http://image.cryptomartin.top/img/image-20211224223955718.png">
+<meta property="og:image" content="http://image.cryptomartin.top/img/image-20211224224225735.png">
+<meta property="article:published_time" content="2021-12-24T15:00:53.000Z">
+<meta property="article:modified_time" content="2021-12-24T15:02:23.364Z">
+<meta property="article:tag" content="JVM">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://image.cryptomartin.top/img/image-20211222083645693.png">
+  
+  <title>第一章 JVM的内存结构 - 密鼬CyrptoSkunk</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":false,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>密鼬cryptoskunk</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="第一章 JVM的内存结构">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-12-24 23:00" pubdate>
+        2021年12月24日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      13k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      42 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">第一章 JVM的内存结构</h1>
+            
+            <div class="markdown-body">
+              <h1 id="第一章-JVM的内存结构"><a href="#第一章-JVM的内存结构" class="headerlink" title="第一章 JVM的内存结构"></a>第一章 JVM的内存结构</h1><p><strong>本章内容</strong></p>
+<ul>
+<li>程序计数器</li>
+<li>虚拟机栈</li>
+<li>本地方法栈</li>
+<li>堆</li>
+<li>方法区</li>
+</ul>
+<h2 id="1-1-程序计数器"><a href="#1-1-程序计数器" class="headerlink" title="1.1 程序计数器"></a>1.1 程序计数器</h2><p>所处位置</p>
+<p><img src="http://image.cryptomartin.top/img/image-20211222083645693.png" srcset="/img/loading.gif" lazyload alt="image-20211222083645693"></p>
+<h3 id="1-1-1-定义"><a href="#1-1-1-定义" class="headerlink" title="1.1.1 定义"></a>1.1.1 定义</h3><p>Program Counter Register 程序计数器（寄存器）</p>
+<ul>
+<li><p>作用：记住下一条JVM指令的执行地址。</p>
+</li>
+<li><p>特点</p>
+<ul>
+<li>是线程私有的（每个线程都有自己的程序计数器）</li>
+<li>不会存在内存溢出</li>
+</ul>
+</li>
+</ul>
+<p>物理上，是通过寄存器实现的。</p>
+<h3 id="1-1-2-作用"><a href="#1-1-2-作用" class="headerlink" title="1.1.2 作用"></a>1.1.2 作用</h3><p><img src="http://image.cryptomartin.top/img/image-20211222084432356.png" srcset="/img/loading.gif" lazyload alt="image-20211222084432356"></p>
+<blockquote>
+<p>1.java源代码不能直接被执行，得经过编译。编译成左侧的二进制的字节码，叫作JVM指令。</p>
+<p>2.JVM指令直接交给CPU，还不能执行；必须经过解释器，解释成机器码，然后再交给CPU执行。</p>
+</blockquote>
+<p>作用：记住下一条JVM指令的执行地址。</p>
+<ul>
+<li><p>图中的数字，可以理解为JVM指令对应的内存地址，当这些JVM指令被加载到虚拟机内存后，会有一个地址信息，JVM根据地址信息可以找到JVM指令，来执行它。</p>
+</li>
+<li><p>当这些指令被加载JVM内存以后，JVM会有这些地址信息。根据地址信息找到第一条，当第一条<code>0: getstatic #20</code>执行，与此同时，会把下一条执行的地址<code>3</code>放入程序计数器；等第一条执行完以后，<code>解释器</code>会到<code>程序计数器</code>中找到下一条执行的指令地址<code>3</code>，在<code>3</code>指令执行的同时，会把<code>4</code>地址放入程序计数器。重复！</p>
+</li>
+</ul>
+<h2 id="1-2-虚拟机栈"><a href="#1-2-虚拟机栈" class="headerlink" title="1.2 虚拟机栈"></a>1.2 虚拟机栈</h2><p><img src="http://image.cryptomartin.top/img/image-20211222204215587.png" srcset="/img/loading.gif" lazyload alt="image-20211222204215587"></p>
+<p>虚拟机栈，就是线程运行需要的内存空间。</p>
+<p>栈帧，就是每个方法运行需要的内存空间。一个栈帧就对应一次方法的调用。</p>
+<p>一个栈由多个栈帧组成。</p>
+<h3 id="1-2-1-定义"><a href="#1-2-1-定义" class="headerlink" title="1.2.1 定义"></a>1.2.1 定义</h3><p>Java Virtual Machine Stacks （Java 虚拟机栈）</p>
+<ul>
+<li>每个线程运行时所需要的内存，称为虚拟机栈</li>
+<li>每个栈由多个栈帧（Frame）组成，对应着每次方法调用时所占用的内存</li>
+<li>每个线程只能有一个活动栈帧，对应着当前正在执行的那个方法</li>
+</ul>
+<p>问题辨析：</p>
+<ol>
+<li><p>垃圾回收是否涉及栈内存？不涉及，栈帧内存每次方法结束后，都会被弹出栈，会被自动回收，不需要垃圾回收管理。</p>
+</li>
+<li><p>栈内存分配越大越好吗？不是。栈越大，线程数会少。一般采用系统默认的栈内存1024kb就好了。</p>
+</li>
+<li><p>方法内的局部变量是否线程安全？</p>
+<ul>
+<li><p>如果方法内局部变量没有逃离方法的作用访问，它是线程安全的</p>
+</li>
+<li><p>如果是局部变量引用了对象，并逃离方法的作用范围，需要考虑线程安全</p>
+</li>
+</ul>
+</li>
+</ol>
+<p><img src="http://image.cryptomartin.top/img/image-20211222225101335.png" srcset="/img/loading.gif" lazyload alt="image-20211222225101335"></p>
+<h3 id="1-2-2-栈溢出"><a href="#1-2-2-栈溢出" class="headerlink" title="1.2.2 栈溢出"></a>1.2.2 栈溢出</h3><p>什么情况下会导致栈溢出？</p>
+<ul>
+<li>栈帧过多导致栈内存溢出 （递归/对象相互引用…）</li>
+<li>栈帧过大导致栈内存溢出</li>
+</ul>
+<h3 id="1-2-3-线程运行诊断"><a href="#1-2-3-线程运行诊断" class="headerlink" title="1.2.3 线程运行诊断"></a>1.2.3 线程运行诊断</h3><p>案例1： cpu 占用过多</p>
+<p>定位</p>
+<ul>
+<li>用top定位哪个进程对cpu的占用过高，但定位不到是哪个线程导致问题</li>
+<li>ps H -eo pid,tid,%cpu | grep 进程id （用ps命令进一步定位是哪个线程引起的cpu占用过高）</li>
+<li>jstack 进程id<ul>
+<li>可以根据线程id 找到有问题的线程，进一步定位到问题代码的源码行号（线程id 转为十六进制查看）</li>
+</ul>
+</li>
+</ul>
+<p>案例2：程序运行很长时间没有结果</p>
+<p>可能发生死锁。可以使用案例1方法查看。</p>
+<h2 id="1-3-本地方法栈"><a href="#1-3-本地方法栈" class="headerlink" title="1.3 本地方法栈"></a>1.3 本地方法栈</h2><p><img src="http://image.cryptomartin.top/img/image-20211222233156739.png" srcset="/img/loading.gif" lazyload alt="image-20211222233156739"></p>
+<p>本地方法：不是由java编写的代码。有时候需要通过调用操作系统，这时候需要c或者c++编写的本地方法来与操作系统底层API交流。</p>
+<p>本地方法栈：给本地方法的调用提供内存空间</p>
+<p>例如：<code>object</code>类里的<code>clone()</code>方法</p>
+<p><img src="http://image.cryptomartin.top/img/image-20211222234406180.png" srcset="/img/loading.gif" lazyload alt="image-20211222234406180"></p>
+<h2 id="1-4-堆"><a href="#1-4-堆" class="headerlink" title="1.4 堆"></a>1.4 堆</h2><p><img src="http://image.cryptomartin.top/img/image-20211222234505594.png" srcset="/img/loading.gif" lazyload alt="image-20211222234505594"></p>
+<p>堆和方法区是线程共享的区域；其他内存结构是线程私有的。</p>
+<h3 id="1-4-1-定义"><a href="#1-4-1-定义" class="headerlink" title="1.4.1 定义"></a>1.4.1 定义</h3><p>Heap 堆</p>
+<ul>
+<li>通过 new 关键字，创建对象都会使用堆内存</li>
+</ul>
+<p>特点</p>
+<ul>
+<li>它是线程共享的，堆中对象都需要考虑线程安全的问题</li>
+<li>有垃圾回收机制</li>
+</ul>
+<h3 id="1-4-2-堆内存溢出"><a href="#1-4-2-堆内存溢出" class="headerlink" title="1.4.2 堆内存溢出"></a>1.4.2 堆内存溢出</h3><p><code>java.lang.OutOfMemoryError: Java heap space</code></p>
+<p><code>-Xmx8m</code>:设置堆内存大小</p>
+<h3 id="1-4-3-堆内存诊断"><a href="#1-4-3-堆内存诊断" class="headerlink" title="1.4.3 堆内存诊断"></a>1.4.3 堆内存诊断</h3><ol>
+<li><p>jps 工具<br>查看当前系统中有哪些 java 进程</p>
+</li>
+<li><p>jmap 工具<br>查看堆内存占用情况 jmap - heap 进程id</p>
+</li>
+<li><p>jconsole 工具<br>图形界面的，多功能的监测工具，可以连续监测</p>
+</li>
+</ol>
+<h3 id="1-4-4-案例"><a href="#1-4-4-案例" class="headerlink" title="1.4.4 案例"></a>1.4.4 案例</h3><ul>
+<li>垃圾回收后，内存占用仍然很高</li>
+</ul>
+<p><code>jvisualvm</code>:可以查看堆Dump,分析查找问题</p>
+<h2 id="1-5-方法区"><a href="#1-5-方法区" class="headerlink" title="1.5 方法区"></a>1.5 方法区</h2><p><img src="http://image.cryptomartin.top/img/image-20211223152803582.png" srcset="/img/loading.gif" lazyload alt="image-20211223152803582"> </p>
+<h3 id="1-5-1-定义"><a href="#1-5-1-定义" class="headerlink" title="1.5.1 定义"></a>1.5.1 定义</h3><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs markdown">The Java Virtual Machine has a method area that is shared among all Java Virtual Machine threads. The method area is analogous to the storage area for compiled code of a conventional language or analogous to the &quot;text&quot; segment in an operating system process. It stores per-class structures such as the run-time constant pool, field and method data, and the code for methods and constructors, including the special methods (§2.9) used in class and instance initialization and interface initialization.<br><br>The method area is created on virtual machine start-up. Although the method area is logically part of the heap, simple implementations may choose not to either garbage collect or compact it. This specification does not mandate the location of the method area or the policies used to manage compiled code. The method area may be of a fixed size or may be expanded as required by the computation and may be contracted if a larger method area becomes unnecessary. The memory for the method area does not need to be contiguous.<br><br>A Java Virtual Machine implementation may provide the programmer or the user control over the initial size of the method area, as well as, in the case of a varying-size method area, control over the maximum and minimum method area size.<br><br>The following exceptional condition is associated with the method area:<br><span class="hljs-bullet">	-</span> If memory in the method area cannot be made available to satisfy an allocation request, the Java Virtual Machine throws an OutOfMemoryError.<br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="1-5-2-组成"><a href="#1-5-2-组成" class="headerlink" title="1.5.2 组成"></a>1.5.2 组成</h3><p><img src="http://image.cryptomartin.top/img/image-20211223153516263.png" srcset="/img/loading.gif" lazyload alt="image-20211223153516263"></p>
+<p><strong>JVM内存结构1.6</strong></p>
+<ul>
+<li><p>有堆，Method area。</p>
+</li>
+<li><p><code>Method area</code> 是概念上的东西，1.6版本用<code>永久代</code>的方法作为实现。</p>
+</li>
+<li><p><code>永久代</code>包含:存储类的信息(field，method,构造器等等)，类加载器；还有一块运行时常量池，运行池常量池里有个重要的东西<code>StringTable</code>字符串表。</p>
+</li>
+</ul>
+<p><img src="http://image.cryptomartin.top/img/image-20211223154117117.png" srcset="/img/loading.gif" lazyload alt="image-20211223154117117"></p>
+<p><strong>JVM内存结构1.8</strong></p>
+<ul>
+<li><code>Method area</code>还是概念上的东西</li>
+<li>方法区的实现叫作<code>Metaspace</code>元空间，<code>Metaspace</code>里存储类，类加载器，常量池的信息。</li>
+<li>方法区不占用堆内存了，不是由JVM来管理方法区的内存结构了；方法区被转移到<code>本地内存</code>当中！<code>本地内存</code>-&gt;<code>操作系统内存</code></li>
+<li><code>StringTable</code>字符串表在堆里面</li>
+</ul>
+<h3 id="1-5-3-方法区内存溢出"><a href="#1-5-3-方法区内存溢出" class="headerlink" title="1.5.3 方法区内存溢出"></a>1.5.3 方法区内存溢出</h3><ul>
+<li><p>1.8 以前会导致永久代内存溢出</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-bullet">*</span> 演示永久代内存溢出 java.lang.OutOfMemoryError: PermGen space <br><span class="hljs-bullet">*</span> -XX:MaxPermSize=8m<br></code></pre></td></tr></table></figure></li>
+<li><p>1.8 之后会导致元空间内存溢出</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs markdown"><span class="hljs-bullet">*</span> 演示元空间内存溢出 java.lang.OutOfMemoryError: Metaspace <br><span class="hljs-bullet">*</span> -XX:MaxMetaspaceSize=8m<br></code></pre></td></tr></table></figure></li>
+</ul>
+<p><strong>场景</strong></p>
+<ul>
+<li>Spring</li>
+<li>mybatis</li>
+</ul>
+<p>字节码的动态生成。 </p>
+<h3 id="1-5-4-运行时常量池"><a href="#1-5-4-运行时常量池" class="headerlink" title="1.5.4 运行时常量池"></a>1.5.4 运行时常量池</h3><p><code>javap -v HelloWorld.class</code></p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><code class="hljs markdown">//类的基本信息<br>Classfile /E:/JavaProject/cocurrent/Java<span class="hljs-emphasis">_concurrent/src/main/java/com/sunk/jvm/t1/t5/HelloWorld.class</span><br><span class="hljs-emphasis">  Last modified 2021-12-23; size 444 bytes</span><br><span class="hljs-emphasis">  MD5 checksum b00ce07193edf9b24a43ce9f1cc4d75a</span><br><span class="hljs-emphasis">  Compiled from &quot;HelloWorld.java&quot;</span><br><span class="hljs-emphasis">public class com.sunk.jvm.t1.t5.HelloWorld</span><br><span class="hljs-emphasis">  minor version: 0</span><br><span class="hljs-emphasis">  major version: 52</span><br><span class="hljs-emphasis">  flags: ACC_</span>PUBLIC, ACC<span class="hljs-emphasis">_SUPER</span><br><span class="hljs-emphasis">//常量池</span><br><span class="hljs-emphasis">Constant pool:</span><br><span class="hljs-emphasis">   #1 = Methodref          #6.#15         // java/lang/Object.&quot;<span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">init</span>&gt;</span></span>&quot;:()V</span><br><span class="hljs-emphasis">   #2 = Fieldref           #16.#17        // java/lang/System.out:Ljava/io/PrintStream;</span><br><span class="hljs-emphasis">   #3 = String             #18            // hello world</span><br><span class="hljs-emphasis">   #4 = Methodref          #19.#20        // java/io/PrintStream.println:(Ljava/lang/String;)V</span><br><span class="hljs-emphasis">   #5 = Class              #21            // com/sunk/jvm/t1/t5/HelloWorld</span><br><span class="hljs-emphasis">   #6 = Class              #22            // java/lang/Object</span><br><span class="hljs-emphasis">   #7 = Utf8               <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">init</span>&gt;</span></span></span><br><span class="hljs-emphasis">   #8 = Utf8               ()V</span><br><span class="hljs-emphasis">   #9 = Utf8               Code</span><br><span class="hljs-emphasis">  #10 = Utf8               LineNumberTable</span><br><span class="hljs-emphasis">  #11 = Utf8               main</span><br><span class="hljs-emphasis">  #12 = Utf8               ([Ljava/lang/String;)V</span><br><span class="hljs-emphasis">  #13 = Utf8               SourceFile</span><br><span class="hljs-emphasis">  #14 = Utf8               HelloWorld.java</span><br><span class="hljs-emphasis">  #15 = NameAndType        #7:#8          // &quot;<span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">init</span>&gt;</span></span>&quot;:()V</span><br><span class="hljs-emphasis">  #16 = Class              #23            // java/lang/System</span><br><span class="hljs-emphasis">  #17 = NameAndType        #24:#25        // out:Ljava/io/PrintStream;</span><br><span class="hljs-emphasis">  #18 = Utf8               hello world</span><br><span class="hljs-emphasis">  #19 = Class              #26            // java/io/PrintStream</span><br><span class="hljs-emphasis">  #20 = NameAndType        #27:#28        // println:(Ljava/lang/String;)V</span><br><span class="hljs-emphasis">  #21 = Utf8               com/sunk/jvm/t1/t5/HelloWorld</span><br><span class="hljs-emphasis">  #22 = Utf8               java/lang/Object</span><br><span class="hljs-emphasis">  #23 = Utf8               java/lang/System</span><br><span class="hljs-emphasis">  #24 = Utf8               out</span><br><span class="hljs-emphasis">  #25 = Utf8               Ljava/io/PrintStream;</span><br><span class="hljs-emphasis">  #26 = Utf8               java/io/PrintStream</span><br><span class="hljs-emphasis">  #27 = Utf8               println</span><br><span class="hljs-emphasis">  #28 = Utf8               (Ljava/lang/String;)V</span><br><span class="hljs-emphasis"></span><br><span class="hljs-emphasis">//类的方法定义</span><br><span class="hljs-emphasis">&#123;</span><br><span class="hljs-emphasis">  public com.sunk.jvm.t1.t5.HelloWorld(); //构造方法</span><br><span class="hljs-emphasis">    descriptor: ()V</span><br><span class="hljs-emphasis">    flags: ACC_</span>PUBLIC<br><span class="hljs-code">    Code:</span><br><span class="hljs-code">      stack=1, locals=1, args_size=1</span><br><span class="hljs-code">         0: aload_0</span><br><span class="hljs-code">         1: invokespecial #1                  // Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V</span><br><span class="hljs-code">         4: return</span><br><span class="hljs-code">      LineNumberTable:</span><br><span class="hljs-code">        line 8: 0</span><br><span class="hljs-code"></span><br>  public static void main(java.lang.String[]); //main方法<br><span class="hljs-code">    descriptor: ([Ljava/lang/String;)V</span><br><span class="hljs-code">    flags: ACC_PUBLIC, ACC_STATIC</span><br><span class="hljs-code">    Code:</span><br><span class="hljs-code">      stack=2, locals=1, args_size=1</span><br><span class="hljs-code">        //从这开始；虚拟机指令</span><br><span class="hljs-code">         0: getstatic     #2                  // Field java/lang/System.out:Ljava/io/PrintStream;  //#2要去查常量池的表</span><br><span class="hljs-code">         3: ldc           #3                  // String hello world</span><br><span class="hljs-code">         5: invokevirtual #4                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V</span><br><span class="hljs-code">         8: return</span><br><span class="hljs-code">      LineNumberTable:</span><br><span class="hljs-code">        line 10: 0</span><br><span class="hljs-code">        line 11: 8</span><br><span class="hljs-code">&#125;</span><br><span class="hljs-code">SourceFile: &quot;HelloWorld.java&quot;</span><br><span class="hljs-code"></span><br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>常量池，就是一张表，虚拟机指令根据这张常量表找到要执行的类名、方法名、参数类型、字面量等信息</li>
+<li>运行时常量池，常量池是 *.class 文件中的，当该类被加载，它的常量池信息就会放入运行时常量池，并把里面的符号地址变为内存中的真实地址。程序运行时，常量池会放入本地内存中，变成运行时常量池。<code>#1</code>,<code>#2</code>也会变成内存中的地址。</li>
+</ul>
+<h3 id="1-5-5-StringTable"><a href="#1-5-5-StringTable" class="headerlink" title="1.5.5 StringTable"></a>1.5.5 StringTable</h3><ul>
+<li><p>常量池中的字符串仅是符号，第一次用到时才变为对象</p>
+</li>
+<li><p>利用串池的机制，来避免重复创建字符串对象</p>
+</li>
+<li><p>字符串变量拼接的原理是 StringBuilder （1.8）</p>
+</li>
+<li><p>字符串常量拼接的原理是编译期优化</p>
+</li>
+<li><p>可以使用 intern 方法，主动将串池中还没有的字符串对象放入串池</p>
+<ul>
+<li><p>1.8 将这个字符串对象尝试放入串池，如果有则并不会放入，如果没有则放入串池;无论有没有，都 会把串池中的对象返回</p>
+</li>
+<li><p>1.6 将这个字符串对象尝试放入串池，如果有则并不会放入，如果没有会把此对象复制一份，放入串池； 会把串池中的对象返回</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>先看几道面试题：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java">String s1 = <span class="hljs-string">&quot;a&quot;</span>;<br>String s2 = <span class="hljs-string">&quot;b&quot;</span>;<br>String s3 = <span class="hljs-string">&quot;a&quot;</span> + <span class="hljs-string">&quot;b&quot;</span>;<br>String s4 = s1 + s2;<br>String s5 = <span class="hljs-string">&quot;ab&quot;</span>;<br>String s6 = s4.intern();<br><br><span class="hljs-comment">// 问</span><br>System.out.println(s3 == s4);<br>System.out.println(s3 == s5);<br>System.out.println(s3 == s6);<br><br>String x2 = <span class="hljs-keyword">new</span> String(<span class="hljs-string">&quot;c&quot;</span>) + <span class="hljs-keyword">new</span> String(<span class="hljs-string">&quot;d&quot;</span>);<br>String x1 = <span class="hljs-string">&quot;cd&quot;</span>;<br>x2.intern();<br><br><span class="hljs-comment">// 问，如果调换了【最后两行代码】的位置呢，如果是jdk1.6呢 </span><br>System.out.println(x1 == x2);<br></code></pre></td></tr></table></figure>
+
+
+
+<h4 id="1-5-5-1-常量池与串池的关系"><a href="#1-5-5-1-常量池与串池的关系" class="headerlink" title="1.5.5.1 常量池与串池的关系"></a>1.5.5.1 常量池与串池的关系</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Demo1_22</span> </span>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;<br>        String s1 = <span class="hljs-string">&quot;a&quot;</span>;<br>        String s2 = <span class="hljs-string">&quot;b&quot;</span>;<br>        String s3 = <span class="hljs-string">&quot;ab&quot;</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>反编译<code>javap -v Demo1_22.class</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><code class="hljs java">Classfile /E:/JavaProject/cocurrent/Java_concurrent/src/main/java/com/sunk/jvm/t1/Demo1_22.class<br>  Last modified <span class="hljs-number">2021</span>-<span class="hljs-number">12</span>-<span class="hljs-number">24</span>; size <span class="hljs-number">320</span> bytes<br>  MD5 checksum 4cc52650a9c6199ee5039970ac0450c0<br>  Compiled from <span class="hljs-string">&quot;Demo1_22.java&quot;</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">com</span>.<span class="hljs-title">sunk</span>.<span class="hljs-title">jvm</span>.<span class="hljs-title">t1</span>.<span class="hljs-title">Demo1_22</span></span><br><span class="hljs-class">  <span class="hljs-title">minor</span> <span class="hljs-title">version</span>: 0</span><br><span class="hljs-class">  <span class="hljs-title">major</span> <span class="hljs-title">version</span>: 52</span><br><span class="hljs-class">  <span class="hljs-title">flags</span>: <span class="hljs-title">ACC_PUBLIC</span>, <span class="hljs-title">ACC_SUPER</span></span><br><span class="hljs-class"><span class="hljs-title">Constant</span> <span class="hljs-title">pool</span>:</span><br><span class="hljs-class">   #1 </span>= Methodref          #<span class="hljs-number">6.</span>#<span class="hljs-number">15</span>         <span class="hljs-comment">// java/lang/Object.&quot;&lt;init&gt;&quot;:()V</span><br>   #<span class="hljs-number">2</span> = String             #<span class="hljs-number">16</span>            <span class="hljs-comment">// a</span><br>   #<span class="hljs-number">3</span> = String             #<span class="hljs-number">17</span>            <span class="hljs-comment">// b</span><br>   #<span class="hljs-number">4</span> = String             #<span class="hljs-number">18</span>            <span class="hljs-comment">// ab</span><br>   #<span class="hljs-number">5</span> = Class              #<span class="hljs-number">19</span>            <span class="hljs-comment">// com/sunk/jvm/t1/Demo1_22</span><br>   #<span class="hljs-number">6</span> = Class              #<span class="hljs-number">20</span>            <span class="hljs-comment">// java/lang/Object</span><br>   #<span class="hljs-number">7</span> = Utf8               &lt;init&gt;<br>   #<span class="hljs-number">8</span> = Utf8               ()V<br>   #<span class="hljs-number">9</span> = Utf8               Code<br>  #<span class="hljs-number">10</span> = Utf8               LineNumberTable<br>  #<span class="hljs-number">11</span> = Utf8               main<br>  #<span class="hljs-number">12</span> = Utf8               ([Ljava/lang/String;)V<br>  #<span class="hljs-number">13</span> = Utf8               SourceFile<br>  #<span class="hljs-number">14</span> = Utf8               Demo1_22.java<br>  #<span class="hljs-number">15</span> = NameAndType        #<span class="hljs-number">7</span>:#<span class="hljs-number">8</span>          <span class="hljs-comment">// &quot;&lt;init&gt;&quot;:()V</span><br>  #<span class="hljs-number">16</span> = Utf8               a<br>  #<span class="hljs-number">17</span> = Utf8               b<br>  #<span class="hljs-number">18</span> = Utf8               ab<br>  #<span class="hljs-number">19</span> = Utf8               com/sunk/jvm/t1/Demo1_22<br>  #<span class="hljs-number">20</span> = Utf8               java/lang/Object<br>&#123;<br>  <span class="hljs-keyword">public</span> com.sunk.jvm.t1.Demo1_22();<br>    descriptor: ()V<br>    flags: ACC_PUBLIC<br>    Code:<br>      stack=<span class="hljs-number">1</span>, locals=<span class="hljs-number">1</span>, args_size=<span class="hljs-number">1</span><br>         <span class="hljs-number">0</span>: aload_0<br>         <span class="hljs-number">1</span>: invokespecial #<span class="hljs-number">1</span>                  <span class="hljs-comment">// Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V</span><br>         <span class="hljs-number">4</span>: <span class="hljs-keyword">return</span><br>      LineNumberTable:<br>        line <span class="hljs-number">7</span>: <span class="hljs-number">0</span><br><br>  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(java.lang.String[])</span></span>;<br>    descriptor: ([Ljava/lang/String;)V<br>    flags: ACC_PUBLIC, ACC_STATIC<br>    Code:<br>      stack=<span class="hljs-number">1</span>, locals=<span class="hljs-number">4</span>, args_size=<span class="hljs-number">1</span><br>         <span class="hljs-number">0</span>: ldc           #<span class="hljs-number">2</span>                  <span class="hljs-comment">// String a</span><br>         <span class="hljs-number">2</span>: astore_1<br>         <span class="hljs-number">3</span>: ldc           #<span class="hljs-number">3</span>                  <span class="hljs-comment">// String b</span><br>         <span class="hljs-number">5</span>: astore_2<br>         <span class="hljs-number">6</span>: ldc           #<span class="hljs-number">4</span>                  <span class="hljs-comment">// String ab</span><br>         <span class="hljs-number">8</span>: astore_3<br>         <span class="hljs-number">9</span>: <span class="hljs-keyword">return</span><br>      LineNumberTable:<br>        line <span class="hljs-number">9</span>: <span class="hljs-number">0</span><br>        line <span class="hljs-number">10</span>: <span class="hljs-number">3</span><br>        line <span class="hljs-number">11</span>: <span class="hljs-number">6</span><br>        line <span class="hljs-number">12</span>: <span class="hljs-number">9</span><br>      LocalVariableTable:<br>        Start  Length  Slot  Name   Signature<br>            <span class="hljs-number">0</span>      <span class="hljs-number">10</span>     <span class="hljs-number">0</span>  args   [Ljava/lang/String;<br>            <span class="hljs-number">3</span>       <span class="hljs-number">7</span>     <span class="hljs-number">1</span>    s1   Ljava/lang/String;<br>            <span class="hljs-number">6</span>       <span class="hljs-number">4</span>     <span class="hljs-number">2</span>    s2   Ljava/lang/String;<br>            <span class="hljs-number">9</span>       <span class="hljs-number">1</span>     <span class="hljs-number">3</span>    s3   Ljava/lang/String;<br><br>&#125;<br>SourceFile: <span class="hljs-string">&quot;Demo1_22.java&quot;</span><br><br></code></pre></td></tr></table></figure>
+
+<ul>
+<li> 常量池中的信息，都会被加载到运行时常量池中，这时 a b ab 都是常量池中的符号，还没有变为 java字符串对象</li>
+<li> <code>ldc</code> #2 会把 a符号变为 “a”字符串对象</li>
+<li> 变为 “a”字符串对象后，会到 <code>StringTable</code>中去找有没有取值相同的key（”a”）；如果没有则放入串池。</li>
+<li> 执行完<code>String s1 = &quot;a&quot;;</code>，串池就有 “a”字符串对象  </li>
+<li> 用到才会创建，用不到不会提前创建</li>
+<li> StringTable[“a”,”b”,”ab”] hashtable 结构，不能扩容</li>
+<li> 每个字符串对象，在串池中都是唯一的。</li>
+</ul>
+<h4 id="1-5-5-2-字符串变量拼接"><a href="#1-5-5-2-字符串变量拼接" class="headerlink" title="1.5.5.2 字符串变量拼接"></a>1.5.5.2 字符串变量拼接</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Demo1_22</span> </span>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;<br>        String s1 = <span class="hljs-string">&quot;a&quot;</span>;<br>        String s2 = <span class="hljs-string">&quot;b&quot;</span>;<br>        String s3 = <span class="hljs-string">&quot;ab&quot;</span>;<br>        String s4 = s1 + s2;<span class="hljs-comment">//new StringBuilder().append(&quot;a&quot;).append(&quot;b&quot;).toString() </span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>String s4 = s1 + s2;//new StringBuilder().append(&quot;a&quot;).append(&quot;b&quot;).toString() new String(&quot;ab&quot;) </code></p>
+<p>图解：</p>
+<p><img src="http://image.cryptomartin.top/img/image-20211224112919717.png" srcset="/img/loading.gif" lazyload alt="image-20211224112919717"></p>
+<p><code>StringBuilder</code>的<code>toString</code>方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">toString</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-comment">// Create a copy, don&#x27;t share the array</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> String(value, <span class="hljs-number">0</span>, count);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>根据拼接好的值，又创建了新的字符串对象！相当于创建”ab”的字符串对象，存入s4</li>
+</ul>
+<p><strong>问：s3==s4？</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;<br>    String s1 = <span class="hljs-string">&quot;a&quot;</span>;<br>    String s2 = <span class="hljs-string">&quot;b&quot;</span>;<br>    String s3 = <span class="hljs-string">&quot;ab&quot;</span>;<br>    String s4 = s1 + s2;<br><br>    System.out.println(s3 == s4 );<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>答案为false。虽然s3的“ab”和s4的“ab”值一样，但s3的”ab”是在串池中的，s4的new String(“ab”)是在堆里面的。</li>
+</ul>
+<h4 id="1-5-5-3-编译期优化"><a href="#1-5-5-3-编译期优化" class="headerlink" title="1.5.5.3 编译期优化"></a>1.5.5.3 编译期优化</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;<br>    String s1 = <span class="hljs-string">&quot;a&quot;</span>;<br>    String s2 = <span class="hljs-string">&quot;b&quot;</span>;<br>    String s3 = <span class="hljs-string">&quot;ab&quot;</span>;<br>    String s4 = s1 + s2;<br>    String s5 = <span class="hljs-string">&quot;a&quot;</span> + <span class="hljs-string">&quot;b&quot;</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>反编译后：</p>
+<p><img src="http://image.cryptomartin.top/img/image-20211224162436968.png" srcset="/img/loading.gif" lazyload alt="image-20211224162436968"></p>
+<p>直接找拼接好的 “ab”。串池中已经有了“ab”字符串对象，不会再创建新的“ab”字符串对象了</p>
+<p>问：s3==s5？true</p>
+<p><img src="http://image.cryptomartin.top/img/image-20211224162735236.png" srcset="/img/loading.gif" lazyload alt="image-20211224162735236"></p>
+<p><strong>原理</strong></p>
+<p><code>String s5 = &quot;a&quot; + &quot;b&quot;;</code>javac在编译期间的优化，结果在编译期间确定为<code>&quot;ab&quot;</code>，已经确定的结果。</p>
+<p><code>String s4 = s1 + s2;</code>,<code>s1</code>,<code>s2</code>是变量，在运行时，引用的值可能被修改，结果是不能确定的；所以在运行期间，用<code>StringBuilder</code>来动态拼接。</p>
+<h4 id="1-5-5-4-intern-放入串池"><a href="#1-5-5-4-intern-放入串池" class="headerlink" title="1.5.5.4 intern,放入串池"></a>1.5.5.4 intern,放入串池</h4><blockquote>
+<p><code>intern()</code>将这个字符串对象尝试放入串池，如果有，则不会放入串池，如果没有则放入串池；无论有没有，都会把串池中的对象返回。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Demo23</span> </span>&#123;<br>    <span class="hljs-comment">//StringTable:[&quot;a&quot;,&quot;b&quot;]，无&quot;ab&quot;</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;<br>        String s = <span class="hljs-keyword">new</span> String(<span class="hljs-string">&quot;a&quot;</span>) + <span class="hljs-keyword">new</span> String(<span class="hljs-string">&quot;b&quot;</span>);<span class="hljs-comment">// StringBuilder 动态拼接 new String(&quot;ab&quot;)</span><br><br>        <span class="hljs-comment">//堆有 new String(&quot;a&quot;)对象  new String(&quot;b&quot;)对象  new String(&quot;ab&quot;)对象</span><br>        <span class="hljs-comment">//问：我们可以把动态创建的 new String(&quot;ab&quot;)对象里的&quot;ab&quot; 放入串池吗？</span><br>        <span class="hljs-comment">//答：可以，用intern</span><br>        System.out.println(<span class="hljs-string">&quot;s是否等于&#x27;ab&#x27;：&quot;</span>+(s==<span class="hljs-string">&quot;ab&quot;</span>));<br>        String s2 = s.intern();<span class="hljs-comment">//将这个字符串对象尝试放入串池，如果有，则不会放入串池。</span><br>        System.out.println(<span class="hljs-string">&quot;使用s.intern()后，s2是否等于&#x27;ab&#x27;:&quot;</span> + (s2 == <span class="hljs-string">&quot;ab&quot;</span>));<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>输出</code>:</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs markdown">s是否等于&#x27;ab&#x27;：false<br>使用s.intern()后，s2是否等于&#x27;ab&#x27;:true<br></code></pre></td></tr></table></figure>
+
+
+
+<p>如果在s2之前打印s==”ab”,那么使用intern之后，s==”ab”都为false; 所以屏蔽<code>//System.out.println(&quot;s是否等于&#39;ab&#39;：&quot; + (s == &quot;ab&quot;));</code>,这时候，s==”ab”为true，s使用了串池的值”ab”。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Demo23</span> </span>&#123;<br>    <span class="hljs-comment">//StringTable:[&quot;a&quot;,&quot;b&quot;]，无&quot;ab&quot;</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;<br>        String s = <span class="hljs-keyword">new</span> String(<span class="hljs-string">&quot;a&quot;</span>) + <span class="hljs-keyword">new</span> String(<span class="hljs-string">&quot;b&quot;</span>);<span class="hljs-comment">// StringBuilder 动态拼接 new String(&quot;ab&quot;)</span><br><br>        <span class="hljs-comment">//堆有 new String(&quot;a&quot;)对象  new String(&quot;b&quot;)对象  new String(&quot;ab&quot;)对象</span><br>        <span class="hljs-comment">//问：我们可以把动态创建的 new String(&quot;ab&quot;)对象里的&quot;ab&quot; 放入串池吗？</span><br>        <span class="hljs-comment">//答：可以，用intern</span><br>        <span class="hljs-comment">//System.out.println(&quot;s是否等于&#x27;ab&#x27;：&quot; + (s == &quot;ab&quot;));</span><br>        String s2 = s.intern();<span class="hljs-comment">//将这个字符串对象尝试放入串池，如果有，则不会放入串池，会把串池中的对象返回。</span><br>        System.out.println(<span class="hljs-string">&quot;使用s.intern()后，s2是否等于&#x27;ab&#x27;:&quot;</span> + (s2 == <span class="hljs-string">&quot;ab&quot;</span>));<br>        System.out.println(<span class="hljs-string">&quot;s是否等于&#x27;ab&#x27;：&quot;</span> + (s == <span class="hljs-string">&quot;ab&quot;</span>));<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>输出</code>:</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs markdown">使用s.intern()后，s2是否等于&#x27;ab&#x27;:true<br>s是否等于&#x27;ab&#x27;：true<br></code></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Demo23</span> </span>&#123;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;<br>        String x = <span class="hljs-string">&quot;ab&quot;</span>;<span class="hljs-comment">//&quot;ab&quot;在串池中</span><br>        String s = <span class="hljs-keyword">new</span> String(<span class="hljs-string">&quot;a&quot;</span>) + <span class="hljs-keyword">new</span> String(<span class="hljs-string">&quot;b&quot;</span>);<span class="hljs-comment">//&quot;ab&quot;在堆里</span><br>        <br>        <span class="hljs-comment">//将这个字符串对象尝试放入串池，如果有，则不会放入串池，如果没有则放入串池；无论有没有，都会把串池中的对象返回。</span><br>        String s2 = s.intern();<span class="hljs-comment">//s2是串池中的&quot;ab&quot;；s是堆里创建出的&quot;ab&quot;</span><br>        System.out.println(<span class="hljs-string">&quot;s2 == x:&quot;</span>+(s2 == x));<br>        System.out.println(<span class="hljs-string">&quot;s == x:&quot;</span>+(s == x));<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>输出</code>：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs markdown">s2 == x:true<br>s == x:false<br></code></pre></td></tr></table></figure>
+
+
+
+<h4 id="1-5-5-5-回答最初的问题"><a href="#1-5-5-5-回答最初的问题" class="headerlink" title="1.5.5.5 回答最初的问题"></a>1.5.5.5 回答最初的问题</h4><figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs arduino"><span class="hljs-keyword">String</span> s1 = <span class="hljs-string">&quot;a&quot;</span>;<br><span class="hljs-keyword">String</span> s2 = <span class="hljs-string">&quot;b&quot;</span>;<br><span class="hljs-keyword">String</span> s3 = <span class="hljs-string">&quot;a&quot;</span> + <span class="hljs-string">&quot;b&quot;</span>;<br><span class="hljs-keyword">String</span> s4 = s1 + s2;<br><span class="hljs-keyword">String</span> s5 = <span class="hljs-string">&quot;ab&quot;</span>;<br><span class="hljs-keyword">String</span> s6 = s4.<span class="hljs-built_in">intern</span>();<br><br><span class="hljs-comment">// 问</span><br>System.out.<span class="hljs-built_in">println</span>(s3 == s4);<br>System.out.<span class="hljs-built_in">println</span>(s3 == s5);<br>System.out.<span class="hljs-built_in">println</span>(s3 == s6);<br><br><span class="hljs-keyword">String</span> x2 = <span class="hljs-keyword">new</span> <span class="hljs-built_in"><span class="hljs-keyword">String</span></span>(<span class="hljs-string">&quot;c&quot;</span>) + <span class="hljs-keyword">new</span> <span class="hljs-built_in"><span class="hljs-keyword">String</span></span>(<span class="hljs-string">&quot;d&quot;</span>);<br><span class="hljs-keyword">String</span> x1 = <span class="hljs-string">&quot;cd&quot;</span>;<br>x2.<span class="hljs-built_in">intern</span>();<br><br><span class="hljs-comment">// 问，如果调换了【最后两行代码】的位置呢，如果是jdk1.6呢 </span><br>System.out.<span class="hljs-built_in">println</span>(x1 == x2);<br></code></pre></td></tr></table></figure>
+
+<p><code>输出</code>：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs markdown">false<br>true<br>true<br>false<br></code></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs arduino"><span class="hljs-keyword">String</span> x2 = <span class="hljs-keyword">new</span> <span class="hljs-built_in"><span class="hljs-keyword">String</span></span>(<span class="hljs-string">&quot;c&quot;</span>) + <span class="hljs-keyword">new</span> <span class="hljs-built_in"><span class="hljs-keyword">String</span></span>(<span class="hljs-string">&quot;d&quot;</span>);<br>x2.<span class="hljs-built_in">intern</span>();<br><span class="hljs-keyword">String</span> x1 = <span class="hljs-string">&quot;cd&quot;</span>;<br><span class="hljs-comment">// 问，如果调换了【最后两行代码】的位置呢，如果是jdk1.6呢 </span><br>System.out.<span class="hljs-built_in">println</span>(x1 == x2);<br></code></pre></td></tr></table></figure>
+
+<p><code>输出</code>：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs markdown">true<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><code>String x2 = new String(&quot;c&quot;) + new String(&quot;d&quot;);</code>堆中创建字符串对象”cd”</li>
+<li><code>x2.intern();</code>，串池中没有<code>&quot;cd&quot;</code>，则将”cd”加入串池中；</li>
+<li><code>String x1 = &quot;cd&quot;;</code>串池中已经有”cd”，引用串池中已有的”cd”对象。</li>
+<li>JDK1.6:false.</li>
+</ul>
+<h3 id="1-5-6-StringTable的位置"><a href="#1-5-6-StringTable的位置" class="headerlink" title="1.5.6 StringTable的位置"></a>1.5.6 StringTable的位置</h3><p>见 1.5.2 组成</p>
+<h3 id="1-5-7-StringTable-垃圾回收"><a href="#1-5-7-StringTable-垃圾回收" class="headerlink" title="1.5.7 StringTable 垃圾回收"></a>1.5.7 StringTable 垃圾回收</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 演示 StringTable 垃圾回收</span><br><span class="hljs-comment"> * -Xmx10m -XX:+PrintStringTableStatistics -XX:+PrintGCDetails -verbose:gc</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Demo1_7</span> </span>&#123;<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> InterruptedException </span>&#123;<br>        <span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> j = <span class="hljs-number">0</span>; j &lt; <span class="hljs-number">10000</span>; j++) &#123; <span class="hljs-comment">// j=100, j=10000</span><br>                String.valueOf(j).intern();<br>                i++;<br>            &#125;<br>        &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;<br>            e.printStackTrace();<br>        &#125; <span class="hljs-keyword">finally</span> &#123;<br>            System.out.println(i);<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs markdown">[GC (Allocation Failure) [PSYoungGen: 2048K-&gt;504K(2560K)] 2048K-&gt;781K(9728K), 0.0011268 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] <br><br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="1-5-8-StringTable-性能调优"><a href="#1-5-8-StringTable-性能调优" class="headerlink" title="1.5.8 StringTable 性能调优"></a>1.5.8 StringTable 性能调优</h3><ul>
+<li>调整 -XX:StringTableSize=桶个数</li>
+<li>考虑将字符串对象是否入池</li>
+</ul>
+<h2 id="1-6-直接内存-操作系统内存"><a href="#1-6-直接内存-操作系统内存" class="headerlink" title="1.6 直接内存-操作系统内存"></a>1.6 直接内存-操作系统内存</h2><h3 id="1-6-1-定义"><a href="#1-6-1-定义" class="headerlink" title="1.6.1 定义"></a>1.6.1 定义</h3><p>Direct Memory</p>
+<ul>
+<li>常见于 NIO 操作时，用于数据缓冲区</li>
+<li>分配回收成本较高，但读写性能高</li>
+<li>不受 JVM 内存回收管理</li>
+</ul>
+<p><img src="http://image.cryptomartin.top/img/image-20211224223955718.png" srcset="/img/loading.gif" lazyload alt="image-20211224223955718"></p>
+<p>有两块缓冲区:系统缓冲区，java缓冲区</p>
+<p>所以比较慢</p>
+<hr>
+<p><img src="http://image.cryptomartin.top/img/image-20211224224225735.png" srcset="/img/loading.gif" lazyload alt="image-20211224224225735"></p>
+<ul>
+<li><p>系统出的direct memory ，java可以直接访问。系统和java都可以用直接内存。</p>
+</li>
+<li><p>少了一层缓冲区。</p>
+</li>
+</ul>
+<h3 id="1-6-2-分配和回收原理"><a href="#1-6-2-分配和回收原理" class="headerlink" title="1.6.2 分配和回收原理"></a>1.6.2 分配和回收原理</h3><ul>
+<li>使用了 Unsafe 对象完成直接内存的分配回收，并且回收需要主动调用 freeMemory 方法</li>
+<li>ByteBuffer 的实现类内部，使用了 Cleaner （虚引用）来监测 ByteBuffer 对象，一旦ByteBuffer 对象被垃圾回收，那么就会由 ReferenceHandler 线程通过 Cleaner 的 clean 方法调用 freeMemory 来释放直接内存</li>
+</ul>
+<p><code>-XX:+DisableExplicatGC</code> ：禁用显式GC，<code>System.gc()</code>；对于直接内存的回收有影响！长时间得不到释放。</p>
+<p>如何解决？直接用Unsafe对象，调用 freeMemory 方法手动释放直接内存。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/JVM/">JVM</a>
+                    
+                      <a class="hover-with-bg" href="/categories/JVM/JVM%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">JVM学习笔记</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/JVM/">JVM</a>
+                    
+                  </div>
+                
+              </div>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/12/22/%E5%AD%A6%E4%B9%A0JVM%E5%BC%95%E8%A8%80/">
+                        <span class="hidden-mobile">学习JVM引言</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
