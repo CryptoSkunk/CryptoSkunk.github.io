@@ -189,6 +189,67 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
+        <a href="/2022/02/02/%E7%AC%AC%E4%BA%8C%E7%AB%A0-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" target="_self">
+          第二章 垃圾回收
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2022/02/02/%E7%AC%AC%E4%BA%8C%E7%AB%A0-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" target="_self">
+          
+          
+            
+          
+          第二章 垃圾回收本章内容：
+
+如何判断对象可以回收
+垃圾回收算法
+分代垃圾回收
+垃圾回收器
+垃圾回收调优
+
+2.1 如何判断对象可以回收2.1.1 引用计数法顾名思义，此种算法会在每一个对象上记录这个对象被引用的次数，只要有任何一个对象引用了次对象，这个对象的计数器就+1，取消对这个对象的引用时，计数器就-1。任何一个时刻，如果该对象的计数器为0，那么这个对象就是可以回收的。
+弊端：可能存在循环引
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-02-02 00:08" pubdate>
+              2022-02-02
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/JVM/">JVM</a>
+            
+              <a href="/categories/JVM/JVM%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">JVM学习笔记</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/JVM/">JVM</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
         <a href="/2022/02/02/%E7%AC%AC%E5%85%AB%E7%AB%A0-%E5%85%B1%E4%BA%AB%E6%A8%A1%E5%9E%8B%E4%B9%8B%E5%B7%A5%E5%85%B7/" target="_self">
           第八章 共享模型之工具
         </a>
@@ -746,69 +807,6 @@ Hexo成功显示七牛云
             <i class="iconfont icon-tags"></i>
             
               <a href="/tags/Hexo/">Hexo</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2021/12/16/%E7%AC%AC%E4%BA%8C%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/" target="_self">
-          第二章 进程与线程
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/12/16/%E7%AC%AC%E4%BA%8C%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/" target="_self">
-          
-          
-            
-          
-          第二章 进程与线程本章内容
-
-进程和线程的概念
-并行和并发的概念
-线程基本应用
-
-2.1 进程与线程概念2.1.1 进程
-程序由指令和数据组成，但这些指令要运行，数据要读写，就必须将指令加载至 CPU，数据加载至内存。在指令运行过程中还需要用到磁盘、网络等设备。进程就是用来加载指令、管理内存、管理 IO 的
-当一个程序被运行，从磁盘加载这个程序的代码至内存，这时就开启了一个进程。
-进程就可以视为程
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-12-16 16:39" pubdate>
-              2021-12-16
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-category"></i>
-            
-              <a href="/categories/%E9%AB%98%E5%B9%B6%E5%8F%91/">高并发</a>
-            
-              <a href="/categories/%E9%AB%98%E5%B9%B6%E5%8F%91/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/">Java并发编程</a>
-            
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Java/">Java</a>
-            
-              <a href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">高并发</a>
             
           </div>
         
