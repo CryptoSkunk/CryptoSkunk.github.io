@@ -1,0 +1,552 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <meta name="keywords" content="">
+  <meta name="description" content="第七章 共享模型之不可变本章内容  不可变类的使用 不可变类设计 无状态类设计  7.1 日期转换问题7.1.1 问题提出下面的代码在运行时，由于 SimpleDateFormat 不是线程安全的 123456789101112SimpleDateFormat sdf &#x3D; new SimpleDateFormat(&quot;yyyy-MM-dd&quot;);for (int i &#x3D; 0; i">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第七章 共享模型之不可变">
+<meta property="og:url" content="http://example.com/2022/02/01/%E7%AC%AC%E4%B8%83%E7%AB%A0-%E5%85%B1%E4%BA%AB%E6%A8%A1%E5%9E%8B%E4%B9%8B%E4%B8%8D%E5%8F%AF%E5%8F%98/index.html">
+<meta property="og:site_name" content="密鼬CyrptoSkunk">
+<meta property="og:description" content="第七章 共享模型之不可变本章内容  不可变类的使用 不可变类设计 无状态类设计  7.1 日期转换问题7.1.1 问题提出下面的代码在运行时，由于 SimpleDateFormat 不是线程安全的 123456789101112SimpleDateFormat sdf &#x3D; new SimpleDateFormat(&quot;yyyy-MM-dd&quot;);for (int i &#x3D; 0; i">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://image.cryptomartin.top/img/image-20220105172644587.png">
+<meta property="og:image" content="http://image.cryptomartin.top/img/image-20220105173010903.png">
+<meta property="article:published_time" content="2022-02-01T15:58:08.000Z">
+<meta property="article:modified_time" content="2022-02-01T15:59:04.022Z">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="高并发">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://image.cryptomartin.top/img/image-20220105172644587.png">
+  
+  <title>第七章 共享模型之不可变 - 密鼬CyrptoSkunk</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":false,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>密鼬cryptoskunk</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="第七章 共享模型之不可变">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-02-01 23:58" pubdate>
+        2022年2月1日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      7.8k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      24 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">第七章 共享模型之不可变</h1>
+            
+            <div class="markdown-body">
+              <h1 id="第七章-共享模型之不可变"><a href="#第七章-共享模型之不可变" class="headerlink" title="第七章 共享模型之不可变"></a>第七章 共享模型之不可变</h1><p><strong>本章内容</strong></p>
+<ul>
+<li>不可变类的使用</li>
+<li>不可变类设计</li>
+<li>无状态类设计</li>
+</ul>
+<h2 id="7-1-日期转换问题"><a href="#7-1-日期转换问题" class="headerlink" title="7.1 日期转换问题"></a>7.1 日期转换问题</h2><h3 id="7-1-1-问题提出"><a href="#7-1-1-问题提出" class="headerlink" title="7.1.1 问题提出"></a>7.1.1 问题提出</h3><p>下面的代码在运行时，由于 SimpleDateFormat 不是线程安全的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java">SimpleDateFormat sdf = <span class="hljs-keyword">new</span> SimpleDateFormat(<span class="hljs-string">&quot;yyyy-MM-dd&quot;</span>);<br><span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++) &#123;<br>	<span class="hljs-keyword">new</span> Thread(() -&gt; &#123;<br>		<span class="hljs-keyword">try</span> &#123;<br>			log.debug(<span class="hljs-string">&quot;&#123;&#125;&quot;</span>, sdf.parse(<span class="hljs-string">&quot;1951-04-21&quot;</span>));<br>		&#125;<br>		<span class="hljs-keyword">catch</span> (Exception e) &#123;<br>			log.error(<span class="hljs-string">&quot;&#123;&#125;&quot;</span>, e);<br>		&#125;<br>	&#125;<br>	).start();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>有很大几率出现 java.lang.NumberFormatException 或者出现不正确的日期解析结果，例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-number">19</span>:<span class="hljs-number">10</span>:<span class="hljs-number">40.859</span> [Thread-<span class="hljs-number">2</span>] c.TestDateParse - &#123;&#125; <br>java.lang.NumberFormatException: For input string: <span class="hljs-string">&quot;&quot;</span> <br> at java.lang.NumberFormatException.forInputString(NumberFormatException.java:<span class="hljs-number">65</span>) <br> at java.lang.Long.parseLong(Long.java:<span class="hljs-number">601</span>) <br> at java.lang.Long.parseLong(Long.java:<span class="hljs-number">631</span>) <br> at java.text.DigitList.getLong(DigitList.java:<span class="hljs-number">195</span>) <br> at java.text.DecimalFormat.parse(DecimalFormat.java:<span class="hljs-number">2084</span>) <br> at java.text.SimpleDateFormat.subParse(SimpleDateFormat.java:<span class="hljs-number">2162</span>) <br> at java.text.SimpleDateFormat.parse(SimpleDateFormat.java:<span class="hljs-number">1514</span>) <br> at java.text.DateFormat.parse(DateFormat.java:<span class="hljs-number">364</span>) <br> at cn.itcast.n7.TestDateParse.lambda$test1$<span class="hljs-number">0</span>(TestDateParse.java:<span class="hljs-number">18</span>) <br> at java.lang.Thread.run(Thread.java:<span class="hljs-number">748</span>) <br><span class="hljs-number">19</span>:<span class="hljs-number">10</span>:<span class="hljs-number">40.859</span> [Thread-<span class="hljs-number">1</span>] c.TestDateParse - &#123;&#125; <br>java.lang.NumberFormatException: empty String <br> at sun.misc.FloatingDecimal.readJavaFormatString(FloatingDecimal.java:<span class="hljs-number">1842</span>) <br> at sun.misc.FloatingDecimal.parseDouble(FloatingDecimal.java:<span class="hljs-number">110</span>) <br> at java.lang.Double.parseDouble(Double.java:<span class="hljs-number">538</span>) <br> at java.text.DigitList.getDouble(DigitList.java:<span class="hljs-number">169</span>) <br> at java.text.DecimalFormat.parse(DecimalFormat.java:<span class="hljs-number">2089</span>) <br> at java.text.SimpleDateFormat.subParse(SimpleDateFormat.java:<span class="hljs-number">2162</span>) <br> at java.text.SimpleDateFormat.parse(SimpleDateFormat.java:<span class="hljs-number">1514</span>) <br> at java.text.DateFormat.parse(DateFormat.java:<span class="hljs-number">364</span>) <br> at cn.itcast.n7.TestDateParse.lambda$test1$<span class="hljs-number">0</span>(TestDateParse.java:<span class="hljs-number">18</span>) <br> at java.lang.Thread.run(Thread.java:<span class="hljs-number">748</span>) <br><span class="hljs-number">19</span>:<span class="hljs-number">10</span>:<span class="hljs-number">40.857</span> [Thread-<span class="hljs-number">8</span>] c.TestDateParse - Sat Apr <span class="hljs-number">21</span> <span class="hljs-number">00</span>:<span class="hljs-number">00</span>:<span class="hljs-number">00</span> CST <span class="hljs-number">1951</span> <br><span class="hljs-number">19</span>:<span class="hljs-number">10</span>:<span class="hljs-number">40.857</span> [Thread-<span class="hljs-number">9</span>] c.TestDateParse - Sat Apr <span class="hljs-number">21</span> <span class="hljs-number">00</span>:<span class="hljs-number">00</span>:<span class="hljs-number">00</span> CST <span class="hljs-number">1951</span> <br><span class="hljs-number">19</span>:<span class="hljs-number">10</span>:<span class="hljs-number">40.857</span> [Thread-<span class="hljs-number">6</span>] c.TestDateParse - Sat Apr <span class="hljs-number">21</span> <span class="hljs-number">00</span>:<span class="hljs-number">00</span>:<span class="hljs-number">00</span> CST <span class="hljs-number">1951</span><br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="7-1-2-思路-同步锁"><a href="#7-1-2-思路-同步锁" class="headerlink" title="7.1.2 思路-同步锁"></a>7.1.2 思路-同步锁</h3><p>这样虽能解决问题，但带来的是性能上的损失，并不算很好：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java">SimpleDateFormat sdf = <span class="hljs-keyword">new</span> SimpleDateFormat(<span class="hljs-string">&quot;yyyy-MM-dd&quot;</span>);<br><span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++) &#123;<br>	<span class="hljs-keyword">new</span> Thread(() -&gt; &#123;<br>		<span class="hljs-keyword">synchronized</span> (sdf) &#123;<br>			<span class="hljs-keyword">try</span> &#123;<br>				log.debug(<span class="hljs-string">&quot;&#123;&#125;&quot;</span>, sdf.parse(<span class="hljs-string">&quot;1951-04-21&quot;</span>));<br>			&#125;<br>			<span class="hljs-keyword">catch</span> (Exception e) &#123;<br>				log.error(<span class="hljs-string">&quot;&#123;&#125;&quot;</span>, e);<br>			&#125;<br>		&#125;<br>	&#125;<br>	).start();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h3 id="7-1-3-思路-使用不可变类"><a href="#7-1-3-思路-使用不可变类" class="headerlink" title="7.1.3 思路-使用不可变类"></a>7.1.3 思路-使用不可变类</h3><p>如果一个对象在不能够修改其内部状态（属性），那么它就是线程安全的，因为不存在并发修改啊！这样的对象在Java 中有很多，例如在 Java 8 后，提供了一个新的日期格式化类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java">DateTimeFormatter dtf = DateTimeFormatter.ofPattern(<span class="hljs-string">&quot;yyyy-MM-dd&quot;</span>);<br><span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++) &#123;<br>	<span class="hljs-keyword">new</span> Thread(() -&gt; &#123;<br>		TemporalAccessor parse = dtf.parse(<span class="hljs-string">&quot;1951-04-21&quot;</span>);<br>		log.debug(<span class="hljs-string">&quot;&#123;&#125;&quot;</span>,parse);<br>	&#125;<br>	).start();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以看 DateTimeFormatter 的文档：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">Implementation Requirements:This <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">is</span> <span class="hljs-title">immutable</span> <span class="hljs-title">and</span> <span class="hljs-title">thread</span>-<span class="hljs-title">safe</span>.</span><br></code></pre></td></tr></table></figure>
+
+<p>不可变对象，实际是另一种避免竞争的方式。</p>
+<h2 id="7-2-不可变设计思想"><a href="#7-2-不可变设计思想" class="headerlink" title="7.2 不可变设计思想"></a>7.2 不可变设计思想</h2><h3 id="7-2-1-String"><a href="#7-2-1-String" class="headerlink" title="7.2.1 String"></a>7.2.1 String</h3><p>一个大家更为熟悉的 String 类也是不可变的，以它为例，说明一下不可变设计的要素</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">String</span></span><br><span class="hljs-class"> <span class="hljs-keyword">implements</span> <span class="hljs-title">java</span>.<span class="hljs-title">io</span>.<span class="hljs-title">Serializable</span>, <span class="hljs-title">Comparable</span>&lt;<span class="hljs-title">String</span>&gt;, <span class="hljs-title">CharSequence</span> </span>&#123;<br>	<span class="hljs-comment">/** The value is used for character storage. */</span><br>	<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">char</span> value[];<br>	<span class="hljs-comment">/** Cache the hash code for the string */</span><br>	<span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> hash;<br>	<span class="hljs-comment">// Default to 0</span><br>	<span class="hljs-comment">// ...</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="7-2-2-final的使用"><a href="#7-2-2-final的使用" class="headerlink" title="7.2.2 final的使用"></a>7.2.2 final的使用</h3><p>发现该类、类中所有属性都是 fifinal 的</p>
+<ul>
+<li>属性用 final 修饰保证了该属性是只读的，不能修改</li>
+<li>类用 final 修饰保证了该类中的方法不能被覆盖，防止子类无意间破坏不可变性</li>
+</ul>
+<h3 id="7-2-3-保护性拷贝"><a href="#7-2-3-保护性拷贝" class="headerlink" title="7.2.3 保护性拷贝"></a>7.2.3 保护性拷贝</h3><p>但有同学会说，使用字符串时，也有一些跟修改相关的方法啊，比如 substring 等，那么下面就看一看这些方法是如何实现的，就以 substring 为例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">substring</span><span class="hljs-params">(<span class="hljs-keyword">int</span> beginIndex)</span> </span>&#123;<br>	<span class="hljs-keyword">if</span> (beginIndex &lt; <span class="hljs-number">0</span>) &#123;<br>		<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> StringIndexOutOfBoundsException(beginIndex);<br>	&#125;<br>	<span class="hljs-keyword">int</span> subLen = value.length - beginIndex;<br>	<span class="hljs-keyword">if</span> (subLen &lt; <span class="hljs-number">0</span>) &#123;<br>		<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> StringIndexOutOfBoundsException(subLen);<br>	&#125;<br>	<span class="hljs-keyword">return</span> (beginIndex == <span class="hljs-number">0</span>) ? <span class="hljs-keyword">this</span> : <span class="hljs-keyword">new</span> String(value, beginIndex, subLen);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>发现其内部是调用 String 的构造方法创建了一个新字符串，再进入这个构造看看，是否对 final char[] value 做出了修改：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">String</span><span class="hljs-params">(<span class="hljs-keyword">char</span> value[], <span class="hljs-keyword">int</span> offset, <span class="hljs-keyword">int</span> count)</span> </span>&#123;<br>	<span class="hljs-keyword">if</span> (offset &lt; <span class="hljs-number">0</span>) &#123;<br>		<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> StringIndexOutOfBoundsException(offset);<br>	&#125;<br>	<span class="hljs-keyword">if</span> (count &lt;= <span class="hljs-number">0</span>) &#123;<br>		<span class="hljs-keyword">if</span> (count &lt; <span class="hljs-number">0</span>) &#123;<br>			<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> StringIndexOutOfBoundsException(count);<br>		&#125;<br>		<span class="hljs-keyword">if</span> (offset &lt;= value.length) &#123;<br>			<span class="hljs-keyword">this</span>.value = <span class="hljs-string">&quot;&quot;</span>.value;<br>			<span class="hljs-keyword">return</span>;<br>		&#125;<br>	&#125;<br>	<span class="hljs-keyword">if</span> (offset &gt; value.length - count) &#123;<br>		<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> StringIndexOutOfBoundsException(offset + count);<br>	&#125;<br>	<span class="hljs-keyword">this</span>.value = Arrays.copyOfRange(value, offset, offset+count);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>结果发现也没有，构造新字符串对象时，会生成新的 char[] value，对内容进行复制 。这种通过创建副本对象来避免共享的手段称之为【保护性拷贝（defensive copy）】</p>
+<h2 id="7-3-【模式】模式之享元模式"><a href="#7-3-【模式】模式之享元模式" class="headerlink" title="7.3 【模式】模式之享元模式"></a>7.3 【模式】模式之享元模式</h2><h3 id="7-3-1-介绍"><a href="#7-3-1-介绍" class="headerlink" title="7.3.1 介绍"></a>7.3.1 介绍</h3><p>享元（Flyweight）模式的定义：运用共享技术来有效地支持大量细粒度对象的复用。它通过共享已经存在的对象来大幅度减少需要创建的对象数量、避免大量相似类的开销，从而提高系统资源的利用率。</p>
+<p>享元模式的主要优点是：相同对象只要保存一份，这降低了系统中对象的数量，从而降低了系统中细粒度对象给内存带来的压力。</p>
+<p>其主要缺点是：</p>
+<ol>
+<li>为了使对象可以共享，需要将一些不能共享的状态外部化，这将增加程序的复杂性。</li>
+<li>读取享元模式的外部状态会使得运行时间稍微变长。</li>
+</ol>
+<h3 id="7-3-2-体现"><a href="#7-3-2-体现" class="headerlink" title="7.3.2 体现"></a>7.3.2 体现</h3><p><strong>包装类</strong></p>
+<p>在JDK中 Boolean，Byte，Short，Integer，Long，Character 等包装类提供了 valueOf 方法，例如 Long 的valueOf 会缓存 -128~127 之间的 Long 对象，在这个范围之间会重用对象，大于这个范围，才会新建 Long 对象：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">long</span> <span class="hljs-title">valueOf</span><span class="hljs-params">(<span class="hljs-keyword">long</span> l)</span> </span>&#123;<br>	<span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> offset = <span class="hljs-number">128</span>;<br>	<span class="hljs-keyword">if</span> (l &gt;= -<span class="hljs-number">128</span> &amp;&amp; l &lt;= <span class="hljs-number">127</span>) &#123;<br>		<span class="hljs-comment">// will cache</span><br>		<span class="hljs-keyword">return</span> LongCache.cache[(<span class="hljs-keyword">int</span>)l + offset];<br>	&#125;<br>	<span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-keyword">long</span>(l);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注意：</strong></p>
+<ul>
+<li>Byte, Short, Long 缓存的范围都是 -128~127</li>
+<li>Character 缓存的范围是 0~127</li>
+<li>Integer的默认范围是 -128~127</li>
+<li>最小值不能变</li>
+<li>但最大值可以通过调整虚拟机参数 <code>  -Djava.lang.Integer.IntegerCache.high</code> 来改变</li>
+<li>Boolean 缓存了 TRUE 和 FALSE</li>
+</ul>
+</blockquote>
+<p><strong>String 串池</strong></p>
+<p><strong>BigDecimal BigInteger</strong></p>
+<blockquote>
+<p>单个线程BigDecimal是thread-safe，但是多个线程并不能保证BigDecimal是thread-safe。每个是原子的，但组合操作不一定是原子的。所以要使用原子引用类来保护。</p>
+</blockquote>
+<h3 id="7-3-3-DIY"><a href="#7-3-3-DIY" class="headerlink" title="7.3.3 DIY"></a>7.3.3 DIY</h3><p>例如：一个线上商城应用，QPS 达到数千，如果每次都重新创建和关闭数据库连接，性能会受到极大影响。 这时预先创建好一批连接，放入连接池。一次请求到达后，从连接池获取连接，使用完毕后再还回连接池，这样既节约了连接的创建和关闭时间，也实现了连接的重用，不至于让庞大的连接数压垮数据库。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Pool</span> </span>&#123;<br>	<span class="hljs-comment">// 1. 连接池大小</span><br>	<span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> poolSize;<br>	<span class="hljs-comment">// 2. 连接对象数组</span><br>	<span class="hljs-keyword">private</span> Connection[] connections;<br>	<span class="hljs-comment">// 3. 连接状态数组 0 表示空闲， 1 表示繁忙</span><br>	<span class="hljs-keyword">private</span> AtomicIntegerArray states;<br>	<span class="hljs-comment">// 4. 构造方法初始化</span><br>	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Pool</span><span class="hljs-params">(<span class="hljs-keyword">int</span> poolSize)</span> </span>&#123;<br>		<span class="hljs-keyword">this</span>.poolSize = poolSize;<br>		<span class="hljs-keyword">this</span>.connections = <span class="hljs-keyword">new</span> Connection[poolSize];<br>		<span class="hljs-keyword">this</span>.states = <span class="hljs-keyword">new</span> AtomicIntegerArray(<span class="hljs-keyword">new</span> <span class="hljs-keyword">int</span>[poolSize]);<br>		<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; poolSize; i++) &#123;<br>			connections[i] = <span class="hljs-keyword">new</span> MockConnection(<span class="hljs-string">&quot;连接&quot;</span> + (i+<span class="hljs-number">1</span>));<br>		&#125;<br>	&#125;<br>	<span class="hljs-comment">// 5. 借连接</span><br>	<span class="hljs-function"><span class="hljs-keyword">public</span> Connection <span class="hljs-title">borrow</span><span class="hljs-params">()</span> </span>&#123;<br>		<span class="hljs-keyword">while</span>(<span class="hljs-keyword">true</span>) &#123;<br>			<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; poolSize; i++) &#123;<br>				<span class="hljs-comment">// 获取空闲连接</span><br>				<span class="hljs-keyword">if</span>(states.get(i) == <span class="hljs-number">0</span>) &#123;<br>					<span class="hljs-keyword">if</span> (states.compareAndSet(i, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>)) &#123;<br>						log.debug(<span class="hljs-string">&quot;borrow &#123;&#125;&quot;</span>, connections[i]);<br>						<span class="hljs-keyword">return</span> connections[i];<br>					&#125;<br>				&#125;<br>			&#125;<br>			<span class="hljs-comment">// 如果没有空闲连接，当前线程进入等待</span><br>			<span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>) &#123;<br>				<span class="hljs-keyword">try</span> &#123;<br>					log.debug(<span class="hljs-string">&quot;wait...&quot;</span>);<br>					<span class="hljs-keyword">this</span>.wait();<br>				&#125;<br>				<span class="hljs-keyword">catch</span> (InterruptedException e) &#123;<br>					e.printStackTrace();<br>				&#125;<br>			&#125;<br>		&#125;<br>	&#125;<br>	<span class="hljs-comment">// 6. 归还连接</span><br>	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">free</span><span class="hljs-params">(Connection conn)</span> </span>&#123;<br>		<span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; poolSize; i++) &#123;<br>			<span class="hljs-keyword">if</span> (connections[i] == conn) &#123;<br>				states.set(i, <span class="hljs-number">0</span>);<br>				<span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>) &#123;<br>					log.debug(<span class="hljs-string">&quot;free &#123;&#125;&quot;</span>, conn);<br>					<span class="hljs-keyword">this</span>.notifyAll();<br>				&#125;<br>				<span class="hljs-keyword">break</span>;<br>			&#125;<br>		&#125;<br>	&#125;<br>&#125;<br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MockConnection</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Connection</span> </span>&#123;<br>	<span class="hljs-comment">// 实现略</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>使用连接池：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java">Pool pool = <span class="hljs-keyword">new</span> Pool(<span class="hljs-number">2</span>);<br><span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">5</span>; i++) &#123;<br>	<span class="hljs-keyword">new</span> Thread(() -&gt; &#123;<br>		Connection conn = pool.borrow();<br>		<span class="hljs-keyword">try</span> &#123;<br>			Thread.sleep(<span class="hljs-keyword">new</span> Random().nextint(<span class="hljs-number">1000</span>));<br>		&#125;<br>		<span class="hljs-keyword">catch</span> (InterruptedException e) &#123;<br>			e.printStackTrace();<br>		&#125;<br>		pool.free(conn);<br>	&#125;<br>	).start();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>以上实现没有考虑：</p>
+<ul>
+<li>连接的动态增长与收缩</li>
+<li>连接保活（可用性检测）</li>
+<li>等待超时处理</li>
+<li>分布式 hash</li>
+</ul>
+<p>对于关系型数据库，有比较成熟的连接池实现，例如c3p0, druid等 对于更通用的对象池，可以考虑使用apache commons pool，例如redis连接池可以参考jedis中关于连接池的实现</p>
+<h2 id="7-4-final-原理"><a href="#7-4-final-原理" class="headerlink" title="7.4 final 原理"></a>7.4 final 原理</h2><h3 id="7-4-1-设置-final-变量的原理"><a href="#7-4-1-设置-final-变量的原理" class="headerlink" title="7.4.1  设置 final 变量的原理"></a>7.4.1  设置 final 变量的原理</h3><p>理解了 volatile 原理，再对比 fifinal 的实现就比较简单了</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TestFinal</span> </span>&#123;<br> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> a = <span class="hljs-number">20</span>; <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>字节码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-number">0</span>: aload_0<br><span class="hljs-number">1</span>: invokespecial #<span class="hljs-number">1</span> <span class="hljs-comment">// Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V</span><br><span class="hljs-number">4</span>: aload_0<br><span class="hljs-number">5</span>: bipush <span class="hljs-number">20</span><br><span class="hljs-number">7</span>: putfield #<span class="hljs-number">2</span>     <span class="hljs-comment">// Field a:I</span><br> &lt;-- 写屏障   <span class="hljs-comment">//1.保证写屏障之前的指令不会重排序到写屏障之后；2.保证写屏障的修改/赋值操作，在写屏障之后，会同步到主存，其他线程可见</span><br><span class="hljs-number">10</span>: <span class="hljs-keyword">return</span><br></code></pre></td></tr></table></figure>
+
+<p>发现 final 变量的赋值也会通过 putfifield 指令来完成，同样在这条指令之后也会加入写屏障，保证在其它线程读到它的值时不会出现为 0 的情况</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">TestFinal</span> </span>&#123;<br> <span class="hljs-keyword">int</span> a = <span class="hljs-number">20</span>; <br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>不加final，初始值是为0，赋值20是第二步；如果其他线程看到赋值之前的，那就是0。final保证在其它线程读到它的值时不会出现为 0 的情况。</p>
+<h3 id="7-4-2-获取-final-变量的原理"><a href="#7-4-2-获取-final-变量的原理" class="headerlink" title="7.4.2  获取 final 变量的原理"></a>7.4.2  获取 final 变量的原理</h3><p><strong>加final关键字</strong></p>
+<p><img src="http://image.cryptomartin.top/img/image-20220105172644587.png" srcset="/img/loading.gif" lazyload alt="image-20220105172644587"></p>
+<p>并没有到<code>TestFinal</code>类中读取A变量，而是把A变量10复制到 <code>UseFinal1</code>类的栈中。</p>
+<p><code>final</code>修饰的值，会被赋值一份到其他类中。没有共享的操作。</p>
+<p><strong>不加final关键字</strong></p>
+<p><img src="http://image.cryptomartin.top/img/image-20220105173010903.png" srcset="/img/loading.gif" lazyload alt="image-20220105173010903"></p>
+<p>相当于<code>UseFinal1</code>类 到 <code>TestFinal</code> 中去获取静态成员变量，这实际上走的是共享内存。比栈内存性能低。</p>
+<h2 id="7-5-无状态"><a href="#7-5-无状态" class="headerlink" title="7.5 无状态"></a>7.5 无状态</h2><p>在 web 阶段学习时，设计 Servlet 时为了保证其线程安全，都会有这样的建议，不要为 Servlet 设置成员变量，这种没有任何成员变量的类是线程安全的。</p>
+<p>不可变类是成员变量不可变，而无状态类是更进一步，不设置成员变量。</p>
+<blockquote>
+<p>因为成员变量保存的数据也可以称为状态信息，因此没有成员变量就称之为【无状态】</p>
+</blockquote>
+<h2 id="7-6-本章小结"><a href="#7-6-本章小结" class="headerlink" title="7.6 本章小结"></a>7.6 本章小结</h2><p>不可变类使用<br>不可变类设计</p>
+<ul>
+<li>原理方面<ul>
+<li>final</li>
+</ul>
+</li>
+<li>模式方面<ul>
+<li>享元模式</li>
+</ul>
+</li>
+</ul>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E9%AB%98%E5%B9%B6%E5%8F%91/">高并发</a>
+                    
+                      <a class="hover-with-bg" href="/categories/%E9%AB%98%E5%B9%B6%E5%8F%91/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/">Java并发编程</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Java/">Java</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91/">高并发</a>
+                    
+                  </div>
+                
+              </div>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/02/01/%E7%AC%AC%E5%85%AD%E7%AB%A0-%E5%85%B1%E4%BA%AB%E6%A8%A1%E5%9E%8B%E4%B9%8B%E6%97%A0%E9%94%81/">
+                        <span class="hidden-mobile">第六章 共享模型之无锁</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
